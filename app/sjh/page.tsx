@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react';
 import { countries, generatePhoneNumber, searchCountries, type CountryData } from '@/lib/phoneData';
 import { NavigationMenu, MenuButton } from '@/components/NavigationMenu';
+import * as flags from 'country-flag-icons/react/3x2';
 
 const ICON_PATHS: Record<string, React.ReactElement> = {
   check: <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>,
@@ -19,6 +20,25 @@ const Icon = memo(({ name, className = "w-6 h-6" }: { name: string; className?: 
   <svg className={className} viewBox="0 0 24 24" fill="currentColor">{ICON_PATHS[name]}</svg>
 ));
 Icon.displayName = 'Icon';
+
+const CountryFlag = memo(({ countryCode, className = "w-8 h-6" }: { countryCode: string; className?: string }) => {
+  const FlagComponent = flags[countryCode as keyof typeof flags];
+
+  if (!FlagComponent) {
+    return (
+      <div className={`${className} bg-gradient-to-br from-[#007AFF] to-[#0055b3] rounded flex items-center justify-center`}>
+        <Icon name="globe" className="w-4 h-4 text-white" />
+      </div>
+    );
+  }
+
+  return (
+    <div className={`${className} rounded overflow-hidden shadow-md border border-white/20`}>
+      <FlagComponent className="w-full h-full object-cover" />
+    </div>
+  );
+});
+CountryFlag.displayName = 'CountryFlag';
 
 const haptic = (duration: number = 15) => {
   if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
@@ -139,9 +159,7 @@ const CountrySelector = memo(({ isOpen, onClose, onSelect, currentCountry }: Cou
                 }`}
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="shrink-0 w-10 h-10 bg-gradient-to-br from-[#007AFF] to-[#0055b3] rounded-full flex items-center justify-center shadow-lg">
-                    <Icon name="globe" className="w-5 h-5 text-white" />
-                  </div>
+                  <CountryFlag countryCode={country.id} className="w-12 h-9 shrink-0" />
                   <div className="flex-1 min-w-0 text-left">
                     <div className="text-white font-semibold text-[16px] tracking-tight truncate">
                       {country.name}
@@ -333,9 +351,13 @@ export default function PhoneGeneratorPage() {
               className="w-full p-4 flex items-center justify-between active:bg-white/15 transition-all duration-200 touch-manipulation"
             >
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="shrink-0 w-12 h-12 bg-gradient-to-br from-[#007AFF] to-[#0055b3] rounded-full flex items-center justify-center shadow-lg">
-                  <Icon name="globe" className="w-6 h-6 text-white" />
-                </div>
+                {selectedCountry ? (
+                  <CountryFlag countryCode={selectedCountry.id} className="w-14 h-10 shrink-0" />
+                ) : (
+                  <div className="shrink-0 w-14 h-10 bg-gradient-to-br from-[#007AFF] to-[#0055b3] rounded flex items-center justify-center shadow-lg">
+                    <Icon name="globe" className="w-6 h-6 text-white" />
+                  </div>
+                )}
                 <div className="flex-1 min-w-0 text-left">
                   <div className="text-white/70 text-[13px] mb-0.5">当前地区</div>
                   <div className="text-white font-bold text-[17px] tracking-tight truncate drop-shadow-md">
